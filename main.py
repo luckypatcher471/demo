@@ -1,12 +1,12 @@
 import asyncio
 import threading
-
-from speech_to_text import record_voice
-from llm import get_llm_output
-from tts import edge_speak, stop_speaking
-from ui import JarvisUI
 import sys
 from pathlib import Path
+
+from speech_to_text import record_voice, stop_listening_flag
+from llm import get_llm_output
+from tts import edge_speak, stop_speaking
+from web_ui import CASEUI, start_web_interface
 
 from actions.open_app import open_app
 from actions.web_search import web_search
@@ -27,13 +27,12 @@ def get_base_dir():
 
 BASE_DIR = get_base_dir()
 
-async def get_voice_input():
-    return await asyncio.to_thread(record_voice)
+async def get_voice_input(ui=None):
+    return await asyncio.to_thread(record_voice, "🎙 Listening...", ui)
 
-async def ai_loop(ui: JarvisUI):
+async def ai_loop(ui: CASEUI):
     while True:
-        
-        user_text = await get_voice_input()
+        user_text = await get_voice_input(ui)
 
         if not user_text:
             continue
@@ -41,9 +40,10 @@ async def ai_loop(ui: JarvisUI):
         if any(cmd in user_text.lower() for cmd in interrupt_commands):
             stop_speaking()
             temp_memory.reset()
+            ui.write_log("⏹ STOPPED")
             continue
 
-        ui.write_log(f"You: {user_text}")
+        ui.write_log(f"👤 You: {user_text}")
 
         if temp_memory.get_current_question():
             param = temp_memory.get_current_question()
@@ -57,7 +57,6 @@ async def ai_loop(ui: JarvisUI):
 
         def minimal_memory_for_prompt(memory: dict) -> dict:
             result = {}
-
             identity = memory.get("identity", {})
             preferences = memory.get("preferences", {})
             relationships = memory.get("relationships", {})
@@ -100,7 +99,7 @@ async def ai_loop(ui: JarvisUI):
                 memory_block=memory_for_prompt
             )
         except Exception as e:
-            ui.write_log(f"AI ERROR: {e}")
+            ui.write_log(f"⚠ AI ERROR: {e}")
             continue
 
         intent = llm_output.get("intent", "chat")
@@ -110,6 +109,15 @@ async def ai_loop(ui: JarvisUI):
 
         if memory_update and isinstance(memory_update, dict):
             update_memory(memory_update)
+            # Extract emotional state for UI update
+            emo_state = memory_update.get("emotional_state", {})
+            if emo_state:
+                # Get detected emotion (first key) or fallback to 'neutral'
+                detected_emotion = list(emo_state.keys())[0] if emo_state else "neutral"
+                # Extract confidence if available
+                emotion_data = emo_state.get(detected_emotion, {})
+                confidence = emotion_data.get("value", 0.95) if isinstance(emotion_data, dict) else 0.95
+                ui.update_emotion(detected_emotion.upper(), confidence)
 
         temp_memory.set_last_ai_response(response)
 
@@ -167,20 +175,26 @@ async def ai_loop(ui: JarvisUI):
 
         else:
             if response:
-                ui.write_log(f"AI: {response}")
-                edge_speak(response, ui)
+                ui.write_log(f"🤖 CAS-E: {response}")
+                # Pause listening while speaking to avoid overlap
+                stop_listening_flag.set()
+                edge_speak(response, ui, blocking=True)
+                stop_listening_flag.clear()
 
         await asyncio.sleep(0.01)
 
 def main():
-    ui = JarvisUI(BASE_DIR / "face.png", size=(900, 900))
+    ui = CASEUI(str(BASE_DIR))
 
+    # Start AI loop in a side thread
     def runner():
         asyncio.run(ai_loop(ui))
 
     threading.Thread(target=runner, daemon=True).start()
-    ui.root.mainloop()
-
+    
+    # Start Flask/SocketIO server (this is blocking)
+    ui.run()
 
 if __name__ == "__main__":
     main()
+

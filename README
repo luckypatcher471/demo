@@ -21,9 +21,18 @@ video: https://youtu.be/w_AGre6-9TM?si=gE5xc4_aKhy4DwnA
 ## 🔐 Security Notice
 - Runs **100% locally**
 - No remote access by default
-- Jarvis only executes what **YOU code**
+- CAS-E only executes what **YOU code**
 
 ⚠️ Do NOT paste unknown code or give full system control to untrusted scripts.
+
+## 🔑 Gemini API Key
+Put your Gemini key in `config/api_keys.json` with the field name `gemini_api_key`:
+```json
+{
+  "gemini_api_key": "YOUR_KEY_HERE"
+}
+```
+If you want to keep a template in the repo, copy `config/api_keys.json.example` to `config/api_keys.json` and add your key.
 
 ---
 

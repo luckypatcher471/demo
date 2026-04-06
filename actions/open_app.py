@@ -10,7 +10,7 @@ def open_app(
     session_memory=None
 ) -> bool:
     """
-    Opens an application using Windows search.
+    Opens a campus utility or campus app using Windows search.
 
     parameters:
         - app_name (str)

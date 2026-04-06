@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAS-E | Campus Emotion Recognition</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+</head>
+<body>
+    <div class="app-wrapper">
+        <header>
+            <div class="header-content">
+                <h1>CAS-E</h1>
+                <p>Campus Based Emotion Recognition Robot</p>
+            </div>
+            <div class="system-time" id="clock">00:00:00</div>
+        </header>
+
+        <main class="dashboard">
+            <section class="left-panel">
+                <div class="card log-card">
+                    <div class="card-header">
+                        <h3>SYSTEM LOGS</h3>
+                        <div class="status-dot"></div>
+                    </div>
+                    <div id="log-container" class="scroll-area"></div>
+                </div>
+            </section>
+
+            <section class="center-panel">
+                <div class="ai-container">
+                    <div class="heart-box">
+                        <div class="heart" id="heart"></div>
+                    </div>
+                    <div class="emotion-tag" id="emotion-tag">NEUTRAL</div>
+                    <div class="interaction-status">
+                        <span id="status-text">SYSTEM READY</span>
+                        <div class="pulse"></div>
+                    </div>
+                </div>
+                
+                <div class="voice-feedback">
+                    <div class="waveforms">
+                        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                    </div>
+                    <p id="transcript">"Listening for voice input..."</p>
+                </div>
+            </section>
+
+            <section class="right-panel">
+                <div class="card emotion-card">
+                    <h3>EMOTION ANALYTICS</h3>
+                    <div class="emotion-display">
+                        <span id="current-emotion">NEUTRAL</span>
+                        <div class="progress-bar"><div id="emotion-progress"></div></div>
+                        <div class="confidence-score">Confidence: <span id="conf-value">--</span>%</div>
+                    </div>
+                </div>
+
+                <div class="card campus-card">
+                    <h3>CAMPUS UPDATES</h3>
+                    <div id="campus-updates" class="scroll-area mini-scroll">
+                        <p class="update-item">📅 Semester exams starting next week.</p>
+                        <p class="update-item">🏫 New Library wing now open.</p>
+                        <p class="update-item">☕ Free coffee at the Student Union.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/static/script.js"></script>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>

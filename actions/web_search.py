@@ -1,5 +1,5 @@
 import re
-from serpapi import Client 
+from serpapi import GoogleSearch 
 from tts import edge_speak
 from memory.config_manager import get_serpapi_key
 
@@ -17,27 +17,12 @@ def clean(text: str) -> str:
 
 def is_trash(text: str) -> bool:
     t = text.lower()
-    trash_patterns = [
-        r"\bstock(?:s)?\b.*\btoday\b",
-        r"\bshare(?:s)?\b.*\bprice\b",
-        r"\binvestor(?:s)?\b",
-        r"\btrading\b",
-        r"\bmarket(?:s)?\b.*\bopen(?:s|ed)?\b",
-        r"\bticker\b",
-        r"\bnyse\b",
-        r"\bnasdaq\b",
-        r"\.\w{2,4}\sis\b",
-    ]
     spam_keywords = [
         "click here", "read more", "advertisement", "sponsored",
         "subscribe", "newsletter", "sign up",
-        "best things to do", "events this week", "calendar",
         "official website", "visit our", "learn more",
-        "year in review", "trending now", "top 10"
+        "top 10"
     ]
-    for pattern in trash_patterns:
-        if re.search(pattern, t):
-            return True
     return any(keyword in t for keyword in spam_keywords)
 
 def extract_clean_news(result: dict) -> str:
@@ -76,28 +61,27 @@ def serpapi_search(query: str) -> str:
         return "Sir, the web search system is not configured."
 
     clean_query = query
-    if "what happened" in query.lower():
-        clean_query = re.sub(r"what happened (?:in|at|to)\s*", "", query, flags=re.IGNORECASE)
-        clean_query += " news today"
+    if "campus" not in query.lower() and "library" not in query.lower() and "event" not in query.lower():
+        clean_query = f"campus {query}"
 
     params = {
         "q": clean_query,
         "engine": "google_news",
         "hl": "en",
         "gl": "us",
-        "num": 15
+        "num": 15,
+        "api_key": api_key
     }
 
     try:
-        client = Client(api_key=api_key) 
-        data = client.search(params)  
+        search = GoogleSearch(params)
+        data = search.get_dict()
         results = data.get("news_results", [])
     except Exception:
-
         params["engine"] = "google"
         try:
-            client = Client(api_key=api_key)
-            data = client.search(params)
+            search = GoogleSearch(params)
+            data = search.get_dict()
             results = data.get("organic_results", [])
         except Exception:
             return "Sir, I couldn't connect to the search service."
@@ -125,7 +109,7 @@ def serpapi_search(query: str) -> str:
 def web_search(parameters, player=None, session_memory=None):
     query = (parameters or {}).get("query", "").strip()
     if not query:
-        msg = "Sir, I couldn't understand the search request."
+        msg = "Sir, I couldn't understand the campus search request."
         edge_speak(msg)
         return msg
 

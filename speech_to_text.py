@@ -13,10 +13,11 @@ def get_base_dir():
 
 BASE_DIR = get_base_dir()
 
-MODEL_PATH = BASE_DIR / "vosk-model-small-en-us-0.15"
+MODEL_PATH = BASE_DIR / "vosk-model-small-en-us-0.15" / "vosk-model-small-en-us-0.15_c_" / "vosk-model-small-en-us-0.15"
 
 if not MODEL_PATH.exists():
-    MODEL_PATH = Path("C:/Users/90553/Downloads/vosk/vosk-model-small-en-us-0.15")
+    # Fallback to a safer check or raise error
+    raise FileNotFoundError(f"Vosk model not found at {MODEL_PATH}")
 
 model = vosk.Model(str(MODEL_PATH))
 
@@ -28,11 +29,14 @@ def callback(indata, frames, time, status):
         print(status, file=sys.stderr)
     q.put(bytes(indata))
 
-def record_voice(prompt="🎙 I'm listening, sir..."):
+def record_voice(prompt="🎙 I'm listening, sir...", ui=None):
     """
     Blocking call, returns the first recognized sentence.
     """
     print(prompt)
+    if ui:
+        ui.update_transcript("Listening...")
+
     rec = vosk.KaldiRecognizer(model, 16000)
     with sd.RawInputStream(samplerate=16000, blocksize=8000, dtype='int16',
                            channels=1, callback=callback):
@@ -46,5 +50,14 @@ def record_voice(prompt="🎙 I'm listening, sir..."):
                 text = result.get("text", "")
                 if text.strip():
                     print("👤 You:", text)
+                    if ui:
+                        ui.update_transcript(text)
                     return text
+            else:
+                # Partial result for real-time feel
+                partial = json.loads(rec.PartialResult())
+                p_text = partial.get("partial", "")
+                if p_text.strip() and ui:
+                    ui.update_transcript(p_text)
+
     return ""

@@ -6,14 +6,14 @@ REQUIRED_PARAMS = ["receiver", "message_text", "platform"]
 
 def send_message(parameters: dict, response: str | None = None, player=None, session_memory=None) -> bool:
     """
-    Send a message via Windows app (WhatsApp, Telegram, etc.)
+    Send a campus chat message to a student, lecturer, or campus service.
 
     Multi-step support: asks for missing parameters using temporary memory.
 
     Expected parameters:
         - receiver (str)
         - message_text (str)
-        - platform (str, default: "WhatsApp")
+        - platform (str, default: "Campus Chat")
     """
 
     if session_memory is None:
@@ -33,11 +33,11 @@ def send_message(parameters: dict, response: str | None = None, player=None, ses
             session_memory.set_current_question(param)
             question_text = ""
             if param == "receiver":
-                question_text = "Sir, who should I send the message to?"
+                question_text = "Sir, who should I send the message to on campus?"
             elif param == "message_text":
-                question_text = "Sir, what should I say?"
+                question_text = "Sir, what should I say in the campus message?"
             elif param == "platform":
-                question_text = "Sir, which platform should I use? (WhatsApp, Telegram, etc.)"
+                question_text = "Sir, which campus platform should I use? (Campus Chat, Email, etc.)"
             else:
                 question_text = f"Sir, please provide {param}."
 

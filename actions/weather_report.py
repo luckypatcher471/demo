@@ -9,8 +9,8 @@ def weather_action(
     session_memory=None
 ):
     """
-    Weather report action.
-    Opens a Google weather search and gives a short spoken confirmation.
+    Campus information action.
+    Uses campus-focused search terms for weather or event day details.
     """
 
     city = parameters.get("city")
@@ -27,7 +27,7 @@ def weather_action(
     else:
         time = time.strip()
 
-    search_query = f"weather in {city} {time}"
+    search_query = f"campus weather and events in {city} {time}"
     encoded_query = quote_plus(search_query)
     url = f"https://www.google.com/search?q={encoded_query}"
 
@@ -38,7 +38,7 @@ def weather_action(
         _speak_and_log(msg, player)
         return msg
 
-    msg = f"Showing the weather for {city}, {time}, sir."
+    msg = f"Showing campus weather and event info for {city}, {time}, sir."
     _speak_and_log(msg, player)
 
     if session_memory:
